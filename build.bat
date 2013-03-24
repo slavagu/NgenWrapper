@@ -1,8 +1,8 @@
 @echo off
 pushd %~dp0
-call "%VS100COMNTOOLS%\vsvars32.bat"
+if "%WindowsSdkDir%" == "" call "%VS100COMNTOOLS%\vsvars32.bat"
 
-set BUILD_CONFIG=Debug
+if "%BUILD_CONFIG%" == "" set BUILD_CONFIG=Debug
 
 echo Building %BUILD_CONFIG%...
 msbuild.exe NgenWrapper.sln /t:Rebuild /p:Configuration=%BUILD_CONFIG%
