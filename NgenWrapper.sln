@@ -1,14 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NgenWrapper", "NgenWrapper.csproj", "{EBEE1BCB-B87F-42FF-A07A-56D1864E922D}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1F50B338-E4F0-4DB8-B53C-EBE0E92CB145}"
 	ProjectSection(SolutionItems) = preProject
 		build.bat = build.bat
 		license.txt = license.txt
 		readme.md = readme.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NgenWrapper", "NgenWrapper\NgenWrapper.csproj", "{EBEE1BCB-B87F-42FF-A07A-56D1864E922D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
