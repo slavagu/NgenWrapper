@@ -18,7 +18,7 @@ namespace SlavaGu.NgenWrapper
         private IConsoleApp _ngenApp;
         
         private List<string> _assemblies;
-        private int _currentAssembly;
+        private int _processedAssemblyCount;
 
         /// <summary>
         /// Ngen wrapper constructor
@@ -51,17 +51,16 @@ namespace SlavaGu.NgenWrapper
         /// </summary>
         /// <param name="assembly">Path of the assembly or full display name, e.g. 
         /// "myAssembly, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0038abc9deabfle5".</param>
-        /// <param name="scenarios">Multiple images can be generated, depending on usage scenarios.</param>
         /// <param name="exeConfig">Use the configuration of the specified executable assembly.</param>
         /// <param name="appBase">When locating dependencies, use the specified directory as the application base.</param>
-        public void InstallAssembly(string assembly, NgenScenarios scenarios = NgenScenarios.Default, string exeConfig = null,
-                                    string appBase = null)
+        /// <param name="scenarios">Multiple images can be generated, depending on usage scenarios.</param>
+        public void InstallAssembly(string assembly, string exeConfig = null, string appBase = null, NgenScenarios scenarios = NgenScenarios.Default)
         {
             InitNgenAction();
 
             var cmdLine = string.Format("install \"{0}\" /nologo", assembly);
 
-            cmdLine += BuildExtraCmdLine(scenarios, exeConfig, appBase);
+            cmdLine += BuildExtraCmdLine(exeConfig, appBase, scenarios);
 
             BuildAssemblyList(assembly, appBase);
 
@@ -73,17 +72,16 @@ namespace SlavaGu.NgenWrapper
         /// </summary>
         /// <param name="assembly">Path of the assembly or full display name, e.g. 
         /// "myAssembly, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0038abc9deabfle5".</param>
-        /// <param name="scenarios">Multiple images can be generated, depending on usage scenarios.</param>
         /// <param name="exeConfig">Use the configuration of the specified executable assembly.</param>
         /// <param name="appBase">When locating dependencies, use the specified directory as the application base.</param>
-        public void UninstallAssembly(string assembly, NgenScenarios scenarios = NgenScenarios.Default, string exeConfig = null,
-                                      string appBase = null)
+        /// <param name="scenarios">Multiple images can be generated, depending on usage scenarios.</param>
+        public void UninstallAssembly(string assembly, string exeConfig = null, string appBase = null, NgenScenarios scenarios = NgenScenarios.Default)
         {
             InitNgenAction();
 
             var cmdLine = string.Format("uninstall \"{0}\" /nologo /verbose", assembly);
 
-            cmdLine += BuildExtraCmdLine(scenarios, exeConfig, appBase);
+            cmdLine += BuildExtraCmdLine(exeConfig, appBase, scenarios);
 
             BuildAssemblyList(assembly, appBase);
 
@@ -173,11 +171,17 @@ namespace SlavaGu.NgenWrapper
         /// <summary>
         /// Fires when ngen exits
         /// </summary>
-        public event EventHandler<EventArgs> Exit;
+        public event EventHandler<NgenExitEventArgs> Exit;
 
-        private static string BuildExtraCmdLine(NgenScenarios scenarios, string exeConfig, string appBase)
+        private static string BuildExtraCmdLine(string exeConfig, string appBase, NgenScenarios scenarios)
         {
             var cmdLine = string.Empty;
+
+            if (exeConfig != null)
+                cmdLine += string.Format(" /ExeConfig:\"{0}\"", exeConfig);
+
+            if (appBase != null)
+                cmdLine += string.Format(" /AppBase:\"{0}\"", appBase);
 
             if (scenarios.HasFlag(NgenScenarios.Debug))
                 cmdLine += " /Debug";
@@ -187,12 +191,6 @@ namespace SlavaGu.NgenWrapper
 
             if (scenarios.HasFlag(NgenScenarios.NoDependencies))
                 cmdLine += " /NoDependencies";
-
-            if (exeConfig != null)
-                cmdLine += string.Format(" /ExeConfig:\"{0}\"", exeConfig);
-
-            if (appBase != null)
-                cmdLine += string.Format(" /AppBase:\"{0}\"", appBase);
 
             return cmdLine;
         }
@@ -225,7 +223,7 @@ namespace SlavaGu.NgenWrapper
 
         private void UpdateProgress(string outputLine)
         {
-            // try to find what assembly is started processing now
+            // try to find what assembly is being processed now
             if (_assemblies != null && _assemblies.Count > 0)
             {
                 var match = AssemblyRegex.Match(outputLine);
@@ -236,8 +234,8 @@ namespace SlavaGu.NgenWrapper
                     {
                         try
                         {
-                            _currentAssembly++;
-                            OnProgress(new NgenProgressEventArgs(assembly, _currentAssembly, _assemblies.Count));
+                            _processedAssemblyCount++;
+                            OnProgress(new NgenProgressEventArgs(assembly, _processedAssemblyCount, _assemblies.Count));
                         }
                         catch (Exception ex)
                         {
@@ -255,7 +253,7 @@ namespace SlavaGu.NgenWrapper
                 ExitCode = _ngenApp.ExitCode;
             }
             DisposeNgen();
-            OnExit(e);
+            OnExit(new NgenExitEventArgs(ExitCode));
         }
 
         private void ThrowIfRunning()
@@ -277,7 +275,7 @@ namespace SlavaGu.NgenWrapper
 
             ExitCode = null;
             _assemblies = null;
-            _currentAssembly = 0;
+            _processedAssemblyCount = 0;
         }
 
         private void RunNgen(string cmdLine)
@@ -313,7 +311,7 @@ namespace SlavaGu.NgenWrapper
                 handler(this, e);
         }
 
-        protected virtual void OnExit(EventArgs e)
+        protected virtual void OnExit(NgenExitEventArgs e)
         {
             var handler = Exit;
             if (handler != null)

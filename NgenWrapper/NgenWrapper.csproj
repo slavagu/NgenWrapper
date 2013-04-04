@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyAnalyzer.cs" />
+    <Compile Include="NgenExitEventArgs.cs" />
     <Compile Include="NgenOutputEventArgs.cs" />
     <Compile Include="NgenProgressEventArgs.cs" />
     <Compile Include="NgenScenarios.cs" />
