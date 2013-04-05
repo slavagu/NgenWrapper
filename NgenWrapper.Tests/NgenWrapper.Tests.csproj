@@ -53,6 +53,10 @@
     <Compile Include="NgenLauncherTest.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DummyApplication\DummyApplication.csproj">
+      <Project>{BB44E733-472A-4EDF-A9EA-30A0D1581BAA}</Project>
+      <Name>DummyApplication</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NgenWrapper\NgenWrapper.csproj">
       <Project>{EBEE1BCB-B87F-42FF-A07A-56D1864E922D}</Project>
       <Name>NgenWrapper</Name>

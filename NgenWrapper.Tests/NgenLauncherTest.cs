@@ -10,33 +10,59 @@ namespace NgenWrapper.Tests
     [TestFixture]
     public class NgenLauncherTest
     {
+        const string AssemblyFile = @"DummyApplication.exe";
+
         [Test]
-        public void InstallAssemblyTest()
+        public void display_and_uninstall_after_install_should_succeed()
         {
             var ngenLauncher = new NgenLauncher();
-            ngenLauncher.Progress += (sender, e) => Console.WriteLine("----> {0}/{1} {2} ", e.Current, e.Total,  e.Assembly);
-            ngenLauncher.InstallAssembly(@"C:\Program Files\Cerebrata\AzureDiagnosticsManager\Cerebrata.AzureDiagnosticsManager.exe");
+
+            // install
+            var installedFiles = 0;
+            ngenLauncher.Progress += (sender, e) =>
+            {
+                installedFiles++;
+                Console.WriteLine("---> {0}/{1} {2} ", e.Current, e.Total, e.Assembly);
+            };
+            ngenLauncher.InstallAssembly(AssemblyFile);
             ngenLauncher.WaitForExit();
             Assert.AreEqual(0, ngenLauncher.ExitCode);
+            Assert.AreEqual(3, installedFiles);
+
+            // display
+            ngenLauncher.DisplayAssembly(AssemblyFile);
+            ngenLauncher.WaitForExit();
+            Assert.AreEqual(0, ngenLauncher.ExitCode);
+
+            // uninstall
+            ngenLauncher = new NgenLauncher();
+            var uninstalledFiles = 0;
+            ngenLauncher.Progress += (sender, e) =>
+            {
+                uninstalledFiles++;
+                Console.WriteLine("<--- {0}/{1} {2} ", e.Current, e.Total, e.Assembly);
+            };
+            ngenLauncher.UninstallAssembly(AssemblyFile);
+            ngenLauncher.WaitForExit();
+            Assert.AreEqual(0, ngenLauncher.ExitCode);
+            Assert.AreEqual(3, uninstalledFiles);
         }
 
         [Test]
-        public void UninstallAssemblyTest()
+        public void display_and_uninstall_without_install_should_fail()
         {
             var ngenLauncher = new NgenLauncher();
-            ngenLauncher.Progress += (sender, e) => Console.WriteLine("----> {0}/{1} {2} ", e.Current, e.Total,  e.Assembly);
-            ngenLauncher.UninstallAssembly(@"C:\Program Files\Cerebrata\AzureDiagnosticsManager\Cerebrata.AzureDiagnosticsManager.exe");
+
+            // display
+            ngenLauncher.DisplayAssembly(AssemblyFile);
             ngenLauncher.WaitForExit();
-            Assert.AreEqual(0, ngenLauncher.ExitCode);
+            Assert.AreEqual(-1, ngenLauncher.ExitCode);
+
+            // uninstall
+            ngenLauncher.UninstallAssembly(AssemblyFile);
+            ngenLauncher.WaitForExit();
+            Assert.AreEqual(-1, ngenLauncher.ExitCode);
         }
 
-        [Test]
-        public void DisplayAssemblyTest()
-        {
-            var ngenLauncher = new NgenLauncher();
-            ngenLauncher.DisplayAssembly(@"C:\Program Files\Cerebrata\AzureDiagnosticsManager\Cerebrata.AzureDiagnosticsManager.exe");
-            ngenLauncher.WaitForExit();
-            Assert.AreEqual(0, ngenLauncher.ExitCode);
-        }
     }
 }

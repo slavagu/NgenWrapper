@@ -1,11 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace SlavaGu.NgenWrapper
 {
-    public static class AssemblyAnalyzer
+    public static class AssemblyHelper
     {
         /// <summary>
         /// Get list of referenced assemblies from the same directory as assemblyFile or from appBase, if provided
@@ -37,5 +39,21 @@ namespace SlavaGu.NgenWrapper
             }
         }
 
+        public static string GetShortAssemblyFileName(string s)
+        {
+            s = Path.GetFileName(s);
+            
+            if (s == null)
+                return null;
+
+            if (s.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ||
+                s.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                return s;
+
+            if (File.Exists(s + ".exe"))
+                return s + ".exe";
+
+            return s + ".dll";
+        }
     }
 }

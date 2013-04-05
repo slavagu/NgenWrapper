@@ -164,7 +164,8 @@ namespace SlavaGu.NgenWrapper
         public event EventHandler<NgenOutputEventArgs> Output;
         
         /// <summary>
-        /// Fires when ngen starts processing local assembly during install or uninstall action
+        /// Fires when ngen starts processing local assembly during install or uninstall action.
+        /// NOTE the order in which assemblies are processed depends on ngen and is non-deterministic.
         /// </summary>
         public event EventHandler<NgenProgressEventArgs> Progress;
 
@@ -200,8 +201,7 @@ namespace SlavaGu.NgenWrapper
             if (File.Exists(assembly))
             {
                 _assemblies = new List<string> { assembly };
-                _assemblies.AddRange(AssemblyAnalyzer.GetLocalReferences(assembly, appBase));
-                _assemblies = _assemblies.Select(Path.GetFileNameWithoutExtension).ToList();
+                _assemblies.AddRange(AssemblyHelper.GetLocalReferences(assembly, appBase));
             }
         }
 
@@ -220,6 +220,7 @@ namespace SlavaGu.NgenWrapper
         }
 
         private static readonly Regex AssemblyRegex = new Regex(@"(assembly )(?<assembly>.*?)(,| \(CLR)", RegexOptions.Compiled);
+        private static readonly AssemblyNameComparer AssemblyComparer = new AssemblyNameComparer();
 
         private void UpdateProgress(string outputLine)
         {
@@ -230,12 +231,13 @@ namespace SlavaGu.NgenWrapper
                 if (match.Success)
                 {
                     var assembly = match.Groups["assembly"].Value;
-                    if (_assemblies.Any(a => a.Equals(assembly, StringComparison.OrdinalIgnoreCase)))
+                    if (_assemblies.Contains(assembly, AssemblyComparer))
                     {
                         try
                         {
                             _processedAssemblyCount++;
-                            OnProgress(new NgenProgressEventArgs(assembly, _processedAssemblyCount, _assemblies.Count));
+                            var shortFileName = AssemblyHelper.GetShortAssemblyFileName(assembly);
+                            OnProgress(new NgenProgressEventArgs(shortFileName, _processedAssemblyCount, _assemblies.Count));
                         }
                         catch (Exception ex)
                         {
