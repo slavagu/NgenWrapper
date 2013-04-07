@@ -4,6 +4,7 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1F50B338-E4F0-4DB8-B53C-EBE0E92CB145}"
 	ProjectSection(SolutionItems) = preProject
 		build.bat = build.bat
+		build_release.bat = build_release.bat
 		license.txt = license.txt
 		readme.md = readme.md
 	EndProjectSection
