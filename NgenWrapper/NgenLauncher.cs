@@ -11,7 +11,7 @@ using SlavaGu.ConsoleAppLauncher;
 namespace SlavaGu.NgenWrapper
 {
     /// <summary>
-    /// Ngen.exe (Native Image Generator) wrapper
+    /// Ngen.exe (Native Image Generator) launcher
     /// </summary>
     public class NgenLauncher : IDisposable
     {
@@ -39,7 +39,15 @@ namespace SlavaGu.NgenWrapper
         public int? ExitCode { get; private set; }
 
         /// <summary>
-        /// Ngen status
+        /// Result of the last ngen operation
+        /// </summary>
+        public bool IsSuccessful
+        {
+            get { return ExitCode == 0; }
+        }
+
+        /// <summary>
+        /// Current ngen status
         /// </summary>
         public bool IsRunning
         {
@@ -167,6 +175,8 @@ namespace SlavaGu.NgenWrapper
         /// Fires when ngen starts processing local assembly during install or uninstall action.
         /// NOTE the order in which assemblies are processed depends on ngen and is non-deterministic.
         /// </summary>
+        /// <remarks>If Progress is set the referencies are examined by loading 
+        /// all the dependent assemblies into current AppDomain using ReflectionOnly context.</remarks>
         public event EventHandler<NgenProgressEventArgs> Progress;
 
         /// <summary>
@@ -198,10 +208,11 @@ namespace SlavaGu.NgenWrapper
 
         private void BuildAssemblyList(string assembly, string appBase)
         {
-            if (File.Exists(assembly))
+            // build reference list upfront only if the progress support is required
+            if (Progress != null && File.Exists(assembly))
             {
                 _assemblies = new List<string> { assembly };
-                _assemblies.AddRange(AssemblyHelper.GetLocalReferences(assembly, appBase));
+                _assemblies.AddRange(AssemblyAnalyzer.GetLocalReferences(assembly, appBase));
             }
         }
 
@@ -220,7 +231,7 @@ namespace SlavaGu.NgenWrapper
         }
 
         private static readonly Regex AssemblyRegex = new Regex(@"(assembly )(?<assembly>.*?)(,| \(CLR)", RegexOptions.Compiled);
-        private static readonly AssemblyNameComparer AssemblyComparer = new AssemblyNameComparer();
+        private static readonly AssemblyAnalyzer.FileNameComparer AssemblyFileNameComparer = new AssemblyAnalyzer.FileNameComparer();
 
         private void UpdateProgress(string outputLine)
         {
@@ -231,12 +242,12 @@ namespace SlavaGu.NgenWrapper
                 if (match.Success)
                 {
                     var assembly = match.Groups["assembly"].Value;
-                    if (_assemblies.Contains(assembly, AssemblyComparer))
+                    if (_assemblies.Contains(assembly, AssemblyFileNameComparer))
                     {
                         try
                         {
                             _processedAssemblyCount++;
-                            var shortFileName = AssemblyHelper.GetShortAssemblyFileName(assembly);
+                            var shortFileName = AssemblyAnalyzer.GetShortAssemblyFileName(assembly);
                             OnProgress(new NgenProgressEventArgs(shortFileName, _processedAssemblyCount, _assemblies.Count));
                         }
                         catch (Exception ex)
