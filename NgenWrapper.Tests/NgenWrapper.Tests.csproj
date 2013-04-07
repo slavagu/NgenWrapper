@@ -49,6 +49,8 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyAnalyzerTest.cs" />
+    <Compile Include="NgenTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="NgenLauncherTest.cs" />
   </ItemGroup>

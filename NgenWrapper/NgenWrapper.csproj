@@ -46,8 +46,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyHelper.cs" />
-    <Compile Include="AssemblyNameComparer.cs" />
+    <Compile Include="AssemblyAnalyzer.cs" />
+    <Compile Include="Ngen.cs" />
     <Compile Include="NgenExitEventArgs.cs" />
     <Compile Include="NgenOutputEventArgs.cs" />
     <Compile Include="NgenProgressEventArgs.cs" />
