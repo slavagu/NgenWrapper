@@ -54,6 +54,9 @@ namespace SlavaGu.NgenUI
                 cancelButton.Enabled = false;
             }
 
+            progressBar.Minimum = 0;
+            progressBar.Step = 1;
+
             var ngenAction = Program.Args[0].ToLowerInvariant();
             var assembly = Program.Args[1];
 
@@ -102,9 +105,9 @@ namespace SlavaGu.NgenUI
         {
             label2.Text = Label2.Replace("@assemblyName", e.Assembly);
 
-            progressBar.Minimum = 1;
+            Debug.WriteLine("UpdateProgress ---> {0}/{1} {2} ", e.Current, e.Total, e.Assembly);
+
             progressBar.Maximum = e.Total;
-            progressBar.Step = 1;
             progressBar.PerformStep();
         }
 
